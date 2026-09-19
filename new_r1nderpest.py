@@ -15,6 +15,7 @@ from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtCore import *
 from ui_theme import ThemeManager
 from ui_modals import FramelessModal
+from ui_assets import get_device_asset
 import os
 import threading
 import time
@@ -82,6 +83,129 @@ class Ui_MainWindow(object):
         self._fake_device_mode = False
         self._fake_activation_timer = None
         self._search_thread = None
+        self._selected_device_key = None
+        self._selected_device_assets = None
+
+    def _scaled_pixmap(self, path, target_width, target_height):
+        """Load an image asset and scale it with high-quality filtering."""
+        if not path:
+            return QtGui.QPixmap()
+        try:
+            pixmap = QtGui.QPixmap(str(path))
+        except Exception:
+            return QtGui.QPixmap()
+        if pixmap.isNull():
+            return QtGui.QPixmap()
+
+        target = QtCore.QSize(int(target_width), int(target_height))
+        scaled = pixmap.scaled(
+            target,
+            QtCore.Qt.KeepAspectRatio,
+            QtCore.Qt.SmoothTransformation,
+        )
+        return scaled
+
+    def _set_asset_image(self, label, path, width, height, fallback_text):
+        """Set an image with a safe text fallback when the file is missing."""
+        pixmap = self._scaled_pixmap(path, width, height)
+        if pixmap.isNull():
+            label.clear()
+            label.setText(fallback_text)
+            label.setAlignment(QtCore.Qt.AlignCenter)
+            label.setProperty("assetMissing", True)
+        else:
+            label.setText("")
+            label.setProperty("assetMissing", False)
+            label.setPixmap(pixmap)
+            label.setAlignment(QtCore.Qt.AlignCenter)
+
+        label.style().unpolish(label)
+        label.style().polish(label)
+
+    def _apply_device_asset(self, device_name, product_type="", udid=""):
+        """Resolve and display the visual asset set for a selected device."""
+        resolved_name, asset = get_device_asset(device_name, product_type)
+        self._selected_device_key = resolved_name
+        self._selected_device_assets = asset
+
+        ios_version = asset.get("ios_version", "") or self.iOS or "—"
+        build = asset.get("build", "") or "—"
+        self.iosVersionLarge.setText(f"iOS {ios_version}" if ios_version else "—")
+        self.buildNumber.setText(f"Build number: {build}")
+        self.deviceName.setText(resolved_name)
+        self.deviceUDID.setText(f"UDID: {udid}" if udid else "UDID: —")
+
+        self._set_asset_image(
+            self.iosBadge,
+            asset.get("ios_logo"),
+            48,
+            48,
+            f"iOS\\n{ios_version.split('.', 1)[0] if ios_version else ''}",
+        )
+        self._set_asset_image(
+            self.label_4,
+            asset.get("device_image"),
+            78,
+            136,
+            resolved_name,
+        )
+        self._set_asset_image(
+            self.capabilityIcon,
+            asset.get("status_icon"),
+            30,
+            30,
+            "✓" if asset.get("supported") else "×",
+        )
+
+        if asset.get("supported"):
+            self.deviceInfo.setText(f"iOS Version: {ios_version}, Supported")
+            self.capabilityIcon.setProperty("state", "ok")
+            self.capabilityTitle.setText("Supported")
+            self.capabilitySubtitle.setText("Your device is supported! (Local compatibility rule)")
+        else:
+            self.deviceInfo.setText(f"iOS Version: {ios_version}, Unsupported")
+            self.capabilityIcon.setProperty("state", "error")
+            self.capabilityTitle.setText("Unsupported")
+            self.capabilitySubtitle.setText("Your device is not supported by this version of iOS.")
+
+        self.capabilityIcon.style().unpolish(self.capabilityIcon)
+        self.capabilityIcon.style().polish(self.capabilityIcon)
+
+    def _on_device_item_clicked(self, item):
+        data = item.data(QtCore.Qt.UserRole) or {}
+        if not isinstance(data, dict):
+            return
+        self._apply_device_asset(
+            data.get("device_name", item.text()),
+            data.get("product_type", ""),
+            data.get("udid", ""),
+        )
+
+    def _upsert_device_item(self, device_name, udid, product_type):
+        """Insert/update a sidebar item without losing its asset metadata."""
+        target_row = -1
+        for row in range(self.devicesList.count()):
+            item = self.devicesList.item(row)
+            data = item.data(QtCore.Qt.UserRole) or {}
+            if data.get("udid") == udid and udid:
+                target_row = row
+                break
+
+        payload = {
+            "device_name": device_name,
+            "product_type": product_type,
+            "udid": udid,
+        }
+        if target_row < 0:
+            item = QtWidgets.QListWidgetItem(f"▯  {device_name}")
+            self.devicesList.addItem(item)
+        else:
+            item = self.devicesList.item(target_row)
+            item.setText(f"▯  {device_name}")
+
+        item.setData(QtCore.Qt.UserRole, payload)
+        self.devicesList.setCurrentItem(item)
+        self._apply_device_asset(device_name, product_type, udid)
 
     def setupUi(self, MainWindow):
         # New UI layer: keep the existing backend object names so the processing
@@ -163,6 +287,8 @@ class Ui_MainWindow(object):
         self.devicesList.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.devicesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.devicesList.setSpacing(2)
+        self.devicesList.setUniformItemSizes(False)
+        self.devicesList.itemClicked.connect(self._on_device_item_clicked)
         sidebarLayout.addWidget(self.devicesList, 1)
 
         self.themeButton = QtWidgets.QPushButton(self.sidebar)
@@ -203,9 +329,7 @@ class Ui_MainWindow(object):
         self.iosBadge.setObjectName("iosBadge")
         self.iosBadge.setAlignment(QtCore.Qt.AlignCenter)
         self.iosBadge.setFixedSize(46, 46)
-        self.iosBadge.setScaledContents(True)
-        ios_badge_path = os.path.join(base_dir, "assets", "icons", "ios17_badge.svg")
-        self.iosBadge.setPixmap(QtGui.QPixmap(ios_badge_path))
+        self.iosBadge.setScaledContents(False)
         summaryLayout.addWidget(self.iosBadge)
 
         summaryText = QtWidgets.QVBoxLayout()
@@ -233,18 +357,8 @@ class Ui_MainWindow(object):
         previewLayout.setContentsMargins(6, 6, 6, 6)
         self.label_4 = QtWidgets.QLabel(self.devicePreviewFrame)
         self.label_4.setObjectName("label_4")
-        device_image_candidates = (
-            os.path.join(base_dir, "assets", "images", "iphone16pro_natural_titanium.png"),
-            os.path.join(base_dir, "img", "ios26hello.png"),
-        )
-        device_pixmap = next((QtGui.QPixmap(path) for path in device_image_candidates if os.path.exists(path)), QtGui.QPixmap())
-        if not device_pixmap.isNull():
-            self.label_4.setPixmap(device_pixmap)
-            self.label_4.setScaledContents(True)
-        else:
-            self.label_4.setText("Add:\\nassets/images/\\niphone16pro_natural_titanium.png")
-            self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setMinimumHeight(142)
+        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         previewLayout.addWidget(self.label_4, 1)
         deviceCardLayout.addWidget(self.devicePreviewFrame)
 
@@ -466,32 +580,22 @@ class Ui_MainWindow(object):
             if not udid:
                 self.deviceUDID.setText("UDID: —")
 
-            if self.devicesList.count() == 0:
-                item = QtWidgets.QListWidgetItem("▯  " + name)
-                item.setData(QtCore.Qt.UserRole, udid)
-                self.devicesList.addItem(item)
-                self.devicesList.setCurrentRow(0)
-            else:
-                item = self.devicesList.item(0)
-                if item:
-                    item.setText("▯  " + name)
-                    item.setData(QtCore.Qt.UserRole, udid)
+            product_type = self.device_info.get("ProductType", "") if isinstance(self.device_info, dict) else ""
+            if self.devicesList.count() == 0 or self.devicesList.currentItem() is None:
+                self._upsert_device_item(name, udid, product_type)
 
             status_text = self.deviceInfo.text().lower()
             unsupported = "unsupported" in status_text
             supported = "supported" in status_text and not unsupported
             if unsupported:
-                self.capabilityIcon.setText("×")
                 self.capabilityTitle.setText("Unsupported")
                 self.capabilitySubtitle.setText("Your device is not supported by this version of iOS.")
                 self.capabilityIcon.setProperty("state", "error")
             elif supported:
-                self.capabilityIcon.setText("✓")
                 self.capabilityTitle.setText("Supported")
                 self.capabilitySubtitle.setText("Your device is supported! (Local compatibility rule)")
                 self.capabilityIcon.setProperty("state", "ok")
             else:
-                self.capabilityIcon.setText("•")
                 self.capabilityTitle.setText("Checking")
                 self.capabilitySubtitle.setText("Checking local compatibility…")
                 self.capabilityIcon.setProperty("state", "neutral")
@@ -662,7 +766,7 @@ class Ui_MainWindow(object):
         self.iOS = fake_ios
         self.device_info = {
             "DeviceName": fake_name,
-            "ProductType": "iPhone15,2",
+            "ProductType": "iPhone17,1",
             "ProductVersion": fake_ios,
             "UniqueDeviceID": fake_udid,
             "ActivationState": "Unactivated",
@@ -677,16 +781,12 @@ class Ui_MainWindow(object):
         self.deviceUDID.setText(f"UDID: {fake_udid}")
         self.activationState.setText("Activation state: No")
         self.iOSVersion.setText(f"iOS Version: {fake_ios}")
-        self.deviceInfo.setText(f"iOS Version: {fake_ios}, Supported")
+        self.deviceInfo.setText(f"iOS Version: {fake_ios}, Unsupported")
         self.activateButton.setText("Activate")
         self.activateButton.setEnabled(True)
         self.activateButton.setStyleSheet("")
         self.devicesList.clear()
-
-        item = QtWidgets.QListWidgetItem("▯  iPhone 14 Pro Max  [DEV]")
-        item.setData(QtCore.Qt.UserRole, fake_udid)
-        self.devicesList.addItem(item)
-        self.devicesList.setCurrentRow(0)
+        self._upsert_device_item(fake_name, fake_udid, "iPhone17,1")
 
         self.listWidget.clear()
         self.listWidget.addItem("[DEV] Fake iPhone 14 Pro Max connected")
