@@ -138,11 +138,11 @@ class ThemeManager:
         QLabel#deviceName {{
             color: {t["text"]}; font-size: 19px; font-weight: 600;
         }}
-        QLabel#capabilityHeader {
+        QLabel#capabilityHeader {{
             color: {t["sub"]};
             font-size: 11px;
             font-weight: 600;
-        }
+        }}
 
         QLabel#capabilityTitle {{
             color: {t["text"]}; font-size: 14px; font-weight: 600;
