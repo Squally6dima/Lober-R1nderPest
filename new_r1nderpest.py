@@ -122,6 +122,29 @@ class Ui_MainWindow(object):
         label.style().unpolish(label)
         label.style().polish(label)
 
+    def _ios_logo_for_version(self, version, fallback_path=None):
+        """Select an iOS logo by major version with a mapping fallback."""
+        major = str(version or "").split(".", 1)[0]
+        from ui_assets import IOS_LOGOS
+        return IOS_LOGOS.get(major, fallback_path)
+
+    def _apply_status_asset(self, supported):
+        """Apply the supported/unsupported local status asset, with text fallback."""
+        from pathlib import Path
+        from ui_assets import STATUS_DIR
+
+        path = STATUS_DIR / ("status_supported.png" if supported else "status_unsupported.png")
+        self._set_asset_image(
+            self.capabilityIcon,
+            path,
+            30,
+            30,
+            "✓" if supported else "×",
+        )
+        self.capabilityIcon.setProperty("state", "ok" if supported else "error")
+        self.capabilityIcon.style().unpolish(self.capabilityIcon)
+        self.capabilityIcon.style().polish(self.capabilityIcon)
+
     def _apply_device_asset(self, device_name, product_type="", udid=""):
         """Resolve and display the visual asset set for a selected device."""
         resolved_name, asset = get_device_asset(device_name, product_type)
@@ -135,9 +158,10 @@ class Ui_MainWindow(object):
         self.deviceName.setText(resolved_name)
         self.deviceUDID.setText(f"UDID: {udid}" if udid else "UDID: —")
 
+        ios_logo = self._ios_logo_for_version(ios_version, asset.get("ios_logo"))
         self._set_asset_image(
             self.iosBadge,
-            asset.get("ios_logo"),
+            ios_logo,
             48,
             48,
             f"iOS\\n{ios_version.split('.', 1)[0] if ios_version else ''}",
@@ -149,13 +173,7 @@ class Ui_MainWindow(object):
             136,
             resolved_name,
         )
-        self._set_asset_image(
-            self.capabilityIcon,
-            asset.get("status_icon"),
-            30,
-            30,
-            "✓" if asset.get("supported") else "×",
-        )
+        self._apply_status_asset(bool(asset.get("supported")))
 
         if asset.get("supported"):
             self.deviceInfo.setText(f"iOS Version: {ios_version}, Supported")
@@ -789,7 +807,7 @@ class Ui_MainWindow(object):
         self._upsert_device_item(fake_name, fake_udid, "iPhone17,1")
 
         self.listWidget.clear()
-        self.listWidget.addItem("[DEV] Fake iPhone 14 Pro Max connected")
+        self.listWidget.addItem("[DEV] Fake iPhone 16 Pro connected")
         self.listWidget.addItem(f"[DEV] iOS {fake_ios}")
         self.listWidget.addItem(f"[DEV] UDID: {fake_udid}")
         self.listWidget.addItem("[DEV] No real device will be touched")
@@ -798,9 +816,7 @@ class Ui_MainWindow(object):
 
     def start_fake_activation(self):
         """Simulate the activation dialog without touching a real device."""
-        self.activationDialog.show()
-        self.activationDialog.raise_()
-        self.activationDialog.activateWindow()
+        self.activationDialog.show_centered()
         self.activationDetails.setVisible(False)
         self.detailsToggle.setChecked(False)
         self.activationDone.setEnabled(False)
@@ -1902,11 +1918,17 @@ class Ui_MainWindow(object):
                                 ActivationState = output.split("ActivationState: ")[1].split("\n")[0]
 
                                 self.iOS = f"{ProductVersion}"
-                                
+                                self.device_info = {
+                                    "DeviceName": DeviceName,
+                                    "ProductType": ProductType,
+                                    "ProductVersion": ProductVersion,
+                                    "UniqueDeviceID": UDID,
+                                    "ActivationState": ActivationState,
+                                }
+
                                 self.deviceName.setText(DeviceName)
-                                
-                                
                                 self.deviceUDID.setText(f"UDID: {UDID}")
+                                self._upsert_device_item(DeviceName, UDID, ProductType)
                                 if ActivationState == "Activated":
                                       self.activationState.setText(f"Activation state: Yes")
                                       self.activateButton.setEnabled(False)
@@ -1965,9 +1987,15 @@ class Ui_MainWindow(object):
                         r = requests.get(url=f"{self.api_url}?prd={ProductType}&guid=GUID&sn=SN&ver={self.iOS}")
                         if "'success': True" in str(r.json()):
                             self.deviceInfo.setText(f"iOS Version: {ProductVersion}, Supported")
+                            self._apply_status_asset(True)
+                            self.capabilityTitle.setText("Supported")
+                            self.capabilitySubtitle.setText("Your device is supported! (Local compatibility rule)")
                             self.ShowInfoPopup(button_text="Close", message="Your device is supported!", title="Status")
                         else:
                             self.deviceInfo.setText(f"iOS Version: {ProductVersion}, Unsupported")
+                            self._apply_status_asset(False)
+                            self.capabilityTitle.setText("Unsupported")
+                            self.capabilitySubtitle.setText("Your device is not supported by this version of iOS.")
                             self.activateButton.setEnabled(False)
                             self.activateButton.setText("Unsupported.")
                             self.ShowInfoPopup(button_text="Close", message="Your device is unsupported!", title="Status")
@@ -2015,6 +2043,8 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
