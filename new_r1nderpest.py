@@ -13,6 +13,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtCore import *
+from ui_theme import ThemeManager
+from ui_modals import FramelessModal
 import os
 import threading
 import time
@@ -338,9 +340,7 @@ class Ui_MainWindow(object):
         self.rootLayout.addWidget(self.HomePage)
 
         # Activation dialog
-        self.activationDialog = QtWidgets.QDialog(MainWindow)
-        self.activationDialog.setObjectName("activationDialog")
-        self.activationDialog.resize(480, 250)
+        self.activationDialog = FramelessModal(MainWindow, "activationDialog", 480, 250)
         activationLayout = QtWidgets.QVBoxLayout(self.activationDialog)
         activationLayout.setContentsMargins(18, 16, 18, 16)
         activationLayout.setSpacing(8)
@@ -379,9 +379,7 @@ class Ui_MainWindow(object):
         activationLayout.addLayout(activationButtons)
 
         # Settings dialog
-        self.settingsDialog = QtWidgets.QDialog(MainWindow)
-        self.settingsDialog.setObjectName("settingsDialog")
-        self.settingsDialog.resize(520, 250)
+        self.settingsDialog = FramelessModal(MainWindow, "settingsDialog", 520, 250)
         settingsLayout = QtWidgets.QVBoxLayout(self.settingsDialog)
         settingsLayout.setContentsMargins(18, 16, 18, 16)
         settingsLayout.setSpacing(10)
@@ -520,59 +518,17 @@ class Ui_MainWindow(object):
         self._ui_sync_timer.start(250)
 
         def apply_theme(dark=True):
-            if dark:
-                bg, sidebar_bg, surface, surface_alt, border = "#000000", "#111111", "#171717", "#1d1d1d", "#2a2a2a"
-                text, sub, orange, field = "#f5f5f7", "#9a9aa0", "#ff8a24", "#0f0f0f"
-            else:
-                bg, sidebar_bg, surface, surface_alt, border = "#ffffff", "#f5f5f7", "#ffffff", "#f0f0f2", "#e5e5e7"
-                text, sub, orange, field = "#111111", "#8a8a8f", "#ff8a24", "#f7f7f9"
-            MainWindow.setStyleSheet(f"""
-                QWidget, QMainWindow, QDialog, QPushButton, QLabel, QListWidget, QLineEdit, QTextEdit, QProgressBar {{ font-family: "Inter"; }}
-                QMainWindow {{ background: {bg}; }}
-                QFrame#HomePage, QFrame#Intro, QWidget#centralwidget {{ background: {bg}; }}
-                QLabel#introLogo {{ border: none; border-radius: 12px; }}
-                QLabel#welcomeTitle {{ color: {text}; font-size: 28px; font-weight: 700; }}
-                QLabel#welcomeMessage {{ color: {sub}; font-size: 13px; line-height: 1.4; }}
-                QFrame#frame {{ background: {surface_alt}; border-radius: 10px; }}
-                QFrame#pb1 {{ background: {orange}; border-radius: 10px; }}
-                QFrame#sidebar {{ background: {sidebar_bg}; border-right: 1px solid {border}; }}
-                QLabel#headerTitle {{ color: {text}; font-size: 17px; font-weight: 700; }}
-                QLabel#themeHint {{ color: {sub}; font-size: 11px; }}
-                QLabel#devicesCaption, QLabel#deviceSectionLabel {{ color: {sub}; font-size: 11px; font-weight: 600; }}
-                QLabel#introStatusLabel {{ color: {sub}; font-size: 11px; }}
-                QLabel#iosVersionLarge {{ color: {text}; font-size: 23px; font-weight: 700; }}
-                QLabel#buildNumber, QLabel#deviceUDID, QLabel#activationState, QLabel#capabilitySubtitle {{ color: {sub}; font-size: 10px; }}
-                QLabel#deviceName {{ color: {text}; font-size: 19px; font-weight: 700; }}
-                QLabel#capabilityTitle {{ color: {text}; font-size: 14px; font-weight: 700; }}
-                QLabel#iosBadge {{ background: #22a8ef; color: white; border-radius: 12px; font-size: 10px; font-weight: 700; }}
-                QLabel#capabilityIcon {{ background: #2ecc71; color: white; border-radius: 14px; font-size: 17px; font-weight: 700; }}
-                QLabel#capabilityIcon[state="error"] {{ background: #ff3b30; }}
-                QLabel#capabilityIcon[state="neutral"] {{ background: #8e8e93; }}
-                QFrame#summaryCard, QFrame#deviceCard {{ background: {surface}; border: 1px solid {border}; border-radius: 10px; }}
-                QFrame#devicePreviewFrame {{ background: {surface_alt}; border-radius: 8px; }}
-                QListWidget#devicesList {{ background: transparent; border: none; color: {text}; outline: none; font-size: 11px; }}
-                QListWidget#devicesList::item {{ padding: 7px 8px; border-radius: 6px; }}
-                QListWidget#devicesList::item:selected {{ background: {orange}; color: white; }}
-                QPushButton#activateButton {{ background: {orange}; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; }}
-                QPushButton#activateButton:hover {{ background: #ff9d4d; }}
-                QPushButton#activateButton:disabled {{ background: {surface_alt}; color: {sub}; }}
-                QPushButton#settingsButton, QPushButton#themeButton {{ background: {surface_alt}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 0 10px; }}
-                QFrame#pbFrame {{ background: {surface_alt}; border: none; border-radius: 21px; }}
-                QFrame#progressFrame {{ background: {orange}; border-radius: 21px; }}
-                QFrame#InfoNotification, QFrame#LoadingNotification {{ background: {surface}; border: 1px solid {border}; border-radius: 12px; }}
-                QLabel#messageTitle, QLabel#activationDeviceTitle, QLabel#settingsTitle {{ color: {text}; font-size: 13px; font-weight: 700; }}
-                QLabel#messageContent, QLabel#loadingText, QLabel#activationStep, QLabel#apiUrlHint {{ color: {sub}; font-size: 11px; }}
-                QPushButton#closePopup, QPushButton#detailsToggle, QPushButton#activationDone, QPushButton#settingsCancel, QPushButton#settingsSave {{ background: {surface_alt}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 5px 10px; }}
-                QPushButton#activationDone:enabled, QPushButton#settingsSave {{ background: {orange}; color: white; border-color: {orange}; }}
-                QTextEdit#activationDetails, QLineEdit#apiUrlEdit, QLineEdit#dependenciesEdit, QLineEdit#logsEdit {{ background: {field}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 7px; }}
-                QProgressBar#activationProgress {{ background: {surface_alt}; border: none; border-radius: 4px; }}
-                QProgressBar#activationProgress::chunk {{ background: {orange}; border-radius: 4px; }}
-            """)
+            mode = ThemeManager.DARK if dark else ThemeManager.LIGHT
+            app_instance = QtWidgets.QApplication.instance()
+            ThemeManager.apply(app_instance, mode, base_dir)
+
             self.themeButton.setText("☀  Light" if dark else "☾  Dark")
             self.themeHint.setText("Dark" if dark else "Light")
             self._dark_mode = dark
-            for dialog in (self.activationDialog, self.settingsDialog):
-                dialog.setStyleSheet(MainWindow.styleSheet())
+
+            # Child modals intentionally inherit the application QSS.
+            self.activationDialog.setStyleSheet("")
+            self.settingsDialog.setStyleSheet("")
 
         def toggle_theme():
             apply_theme(not getattr(self, "_dark_mode", True))
@@ -597,13 +553,11 @@ class Ui_MainWindow(object):
             if self._fake_device_mode:
                 self.start_fake_activation()
                 return
-            self.activationDialog.show()
-            self.activationDialog.raise_()
-            self.activationDialog.activateWindow()
+            self.activationDialog.show_centered()
             self.StartHacktivating()
 
         self.themeButton.clicked.connect(toggle_theme)
-        self.settingsButton.clicked.connect(self.settingsDialog.show)
+        self.settingsButton.clicked.connect(self.settingsDialog.show_centered)
         self.dependenciesChoose.clicked.connect(choose_dependencies)
         self.logsChoose.clicked.connect(choose_logs)
         self.settingsCancel.clicked.connect(self.settingsDialog.reject)
