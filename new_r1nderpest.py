@@ -525,7 +525,12 @@ class Ui_MainWindow(object):
                 text, sub, orange, field = "#111111", "#8a8a8f", "#ff8a24", "#f7f7f9"
             MainWindow.setStyleSheet(f"""
                 QMainWindow {{ background: {bg}; }}
-                QFrame#HomePage, QWidget#centralwidget {{ background: {bg}; }}
+                QFrame#HomePage, QFrame#Intro, QWidget#centralwidget {{ background: {bg}; }}
+                QLabel#introLogo {{ border: none; border-radius: 12px; }}
+                QLabel#welcomeTitle {{ color: {text}; font-size: 28px; font-weight: 700; }}
+                QLabel#welcomeMessage {{ color: {sub}; font-size: 13px; line-height: 1.4; }}
+                QFrame#frame {{ background: {surface_alt}; border-radius: 10px; }}
+                QFrame#pb1 {{ background: {orange}; border-radius: 10px; }}
                 QFrame#sidebar {{ background: {sidebar_bg}; border-right: 1px solid {border}; }}
                 QLabel#headerTitle {{ color: {text}; font-size: 17px; font-weight: 700; }}
                 QLabel#themeHint {{ color: {sub}; font-size: 11px; }}
