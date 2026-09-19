@@ -1,14 +1,16 @@
-# iPhone 16 Pro preview asset
+# Device render assets
 
-Place the clean Natural Titanium iPhone 16 Pro render at:
+Put the following local renders here:
 
-`assets/images/iphone16pro_natural_titanium.png`
+- `iphone_16_pro.png`
+- `iphone_14_pro_max.png`
+- `ipad_mini_6.png`
+- `iphone16pro_natural_titanium.png` (legacy/fallback name supported by the UI)
 
-Recommended source characteristics:
-- transparent background (PNG)
-- front or three-quarter product render
-- Natural Titanium finish
-- tightly cropped around the device
-- roughly 600–1000 px tall
+Recommended:
+- transparent PNG
+- high-resolution source (at least 500 px on the long side)
+- Natural Titanium / clean product render for iPhone 16 Pro
+- preserve the device's aspect ratio
 
-The UI will load this image automatically. If it is absent, the interface falls back to the existing `img/ios26hello.png` asset; if that is also absent, it shows the expected asset path in the preview card.
+The app scales these images with Qt.KeepAspectRatio + Qt.SmoothTransformation.
