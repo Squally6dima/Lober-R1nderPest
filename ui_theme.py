@@ -157,6 +157,10 @@ class ThemeManager:
             background: {t["success"]}; color: #FFFFFF;
             border-radius: 14px; font-size: 16px; font-weight: 600;
         }}
+        QLabel#capabilityIcon[assetMissing="false"] {{
+            background: transparent;
+            border: none;
+        }}
         QLabel#capabilityIcon[state="error"] {{ background: {t["error"]}; }}
         QLabel#capabilityIcon[state="neutral"] {{ background: #94A3B8; }}
 
