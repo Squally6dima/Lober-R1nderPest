@@ -44,6 +44,7 @@ class ThemeManager:
     def load_inter(cls, base_dir: str) -> str:
         font_dir = Path(base_dir) / "assets" / "fonts"
         candidates = (
+            "InterVariable.ttf",
             "Inter-VariableFont_opsz,wght.ttf",
             "Inter-Regular.ttf",
             "Inter-Medium.ttf",
