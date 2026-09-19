@@ -22,6 +22,11 @@
 | iPhones/iPads that **support iOS 26** | 26.1 **and older** | ✓
 | iPhones/iPads that **don't support iOS 26** | 18.7.2 **and older** | ✓
 
+# Contributors
+
+- [@Squally6dima](https://github.com/Squally6dima) — Project owner / maintainer
+- OpenAI ChatGPT — UI development and code assistance
+
 # Other
 
 > [!WARNING]
