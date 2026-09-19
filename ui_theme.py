@@ -138,14 +138,21 @@ class ThemeManager:
         QLabel#deviceName {{
             color: {t["text"]}; font-size: 19px; font-weight: 600;
         }}
+        QLabel#capabilityHeader {
+            color: {t["sub"]};
+            font-size: 11px;
+            font-weight: 600;
+        }
+
         QLabel#capabilityTitle {{
             color: {t["text"]}; font-size: 14px; font-weight: 600;
         }}
 
-        QLabel#iosBadge {{
-            background: #0EA5E9; color: #FFFFFF;
-            border-radius: 12px; font-size: 10px; font-weight: 600;
-        }}
+        QLabel#iosBadge {
+            background: transparent;
+            border: none;
+        }
+
         QLabel#capabilityIcon {{
             background: {t["success"]}; color: #FFFFFF;
             border-radius: 14px; font-size: 16px; font-weight: 600;
@@ -153,7 +160,7 @@ class ThemeManager:
         QLabel#capabilityIcon[state="error"] {{ background: {t["error"]}; }}
         QLabel#capabilityIcon[state="neutral"] {{ background: #94A3B8; }}
 
-        QFrame#summaryCard, QFrame#deviceCard {{
+        QFrame#summaryCard, QFrame#deviceCard, QFrame#capabilityCard {{
             background: {t["surface"]};
             border: 1px solid {t["border"]};
             border-radius: 12px;
