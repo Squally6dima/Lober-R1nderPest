@@ -641,6 +641,10 @@ class Ui_MainWindow(object):
             self._apply_fake_device()
             return
 
+        if self._fake_activation_timer is not None:
+            self._fake_activation_timer.stop()
+            self._fake_activation_timer = None
+
         # Leave fake mode and let the normal device search take over again.
         self.headerTitle.setText("Lober_R1nderpest")
         self.deviceName.setText("Device Name")
@@ -743,7 +747,7 @@ class Ui_MainWindow(object):
 
             progress, message = steps[self._fake_activation_index]
             self.activationProgress.setValue(progress)
-            self.progressFrame.setGeometry(0, 0, int(progress * 7.21), 51)
+            self.progressFrame.setGeometry(0, 0, int((progress / 100.0) * self.pbFrame.width()), self.pbFrame.height())
             self.activationStep.setText(message)
             self.listWidget.addItem(f"[DEV] {message}")
             self._fake_activation_index += 1
@@ -1745,14 +1749,15 @@ class Ui_MainWindow(object):
           moveBarThread.start()
 
     def setProgress(self, progress: float):
-        pbWIDTH = self.progressFrame.width()
+        progress = max(0.0, min(100.0, float(progress)))
+        pb_width = self.progressFrame.width()
+        new_width = round((progress / 100.0) * self.pbFrame.width())
+        height = self.pbFrame.height()
 
-        newWidth = round(progress * 7.21)
-
-        while pbWIDTH != newWidth:
+        while pb_width != new_width:
             time.sleep(0.004)
-            pbWIDTH += 1
-            self.progressFrame.setGeometry(0,0, pbWIDTH, 51)
+            pb_width += 1 if new_width > pb_width else -1
+            self.progressFrame.setGeometry(0, 0, pb_width, height)
 
     def MoveBar(self):
           global animation
