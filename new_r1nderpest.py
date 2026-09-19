@@ -527,7 +527,7 @@ class Ui_MainWindow(object):
                 bg, sidebar_bg, surface, surface_alt, border = "#ffffff", "#f5f5f7", "#ffffff", "#f0f0f2", "#e5e5e7"
                 text, sub, orange, field = "#111111", "#8a8a8f", "#ff8a24", "#f7f7f9"
             MainWindow.setStyleSheet(f"""
-                QWidget, QMainWindow, QDialog, QPushButton, QLabel, QListWidget, QLineEdit, QTextEdit, QProgressBar { font-family: "Inter"; }
+                QWidget, QMainWindow, QDialog, QPushButton, QLabel, QListWidget, QLineEdit, QTextEdit, QProgressBar {{ font-family: "Inter"; }}
                 QMainWindow {{ background: {bg}; }}
                 QFrame#HomePage, QFrame#Intro, QWidget#centralwidget {{ background: {bg}; }}
                 QLabel#introLogo {{ border: none; border-radius: 12px; }}
