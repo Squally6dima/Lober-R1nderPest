@@ -70,7 +70,7 @@ class Ui_MainWindow(object):
         self.afc_mode = None
         self.device_info = {}
         self.guid = None
-        self.iOS = "26.1"
+        self.iOS = "26.6.2"
         self.attempt_count = 0
         self.max_attempts = 15
         self.global_GUID = ""
@@ -230,8 +230,17 @@ class Ui_MainWindow(object):
         previewLayout.setContentsMargins(6, 6, 6, 6)
         self.label_4 = QtWidgets.QLabel(self.devicePreviewFrame)
         self.label_4.setObjectName("label_4")
-        self.label_4.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/ios26hello.png")))
-        self.label_4.setScaledContents(True)
+        device_image_candidates = (
+            os.path.join(base_dir, "assets", "images", "iphone16pro_natural_titanium.png"),
+            os.path.join(base_dir, "img", "ios26hello.png"),
+        )
+        device_pixmap = next((QtGui.QPixmap(path) for path in device_image_candidates if os.path.exists(path)), QtGui.QPixmap())
+        if not device_pixmap.isNull():
+            self.label_4.setPixmap(device_pixmap)
+            self.label_4.setScaledContents(True)
+        else:
+            self.label_4.setText("Add:\\nassets/images/\\niphone16pro_natural_titanium.png")
+            self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setMinimumHeight(142)
         previewLayout.addWidget(self.label_4, 1)
         deviceCardLayout.addWidget(self.devicePreviewFrame)
@@ -253,27 +262,39 @@ class Ui_MainWindow(object):
         details.addWidget(self.activationState)
         details.addStretch(1)
 
-        capabilityRow = QtWidgets.QHBoxLayout()
-        capabilityRow.setSpacing(8)
-        self.capabilityIcon = QtWidgets.QLabel(self.deviceCard)
-        self.capabilityIcon.setObjectName("capabilityIcon")
-        self.capabilityIcon.setAlignment(QtCore.Qt.AlignCenter)
-        self.capabilityIcon.setFixedSize(28, 28)
-        capabilityRow.addWidget(self.capabilityIcon)
-
-        capabilityText = QtWidgets.QVBoxLayout()
-        capabilityText.setSpacing(0)
-        self.capabilityTitle = QtWidgets.QLabel(self.deviceCard)
-        self.capabilityTitle.setObjectName("capabilityTitle")
-        capabilityText.addWidget(self.capabilityTitle)
-        self.capabilitySubtitle = QtWidgets.QLabel(self.deviceCard)
-        self.capabilitySubtitle.setObjectName("capabilitySubtitle")
-        self.capabilitySubtitle.setWordWrap(True)
-        capabilityText.addWidget(self.capabilitySubtitle)
-        capabilityRow.addLayout(capabilityText)
-        details.addLayout(capabilityRow)
+        details.addStretch(1)
         deviceCardLayout.addLayout(details, 1)
         contentLayout.addWidget(self.deviceCard, 1)
+
+        self.capabilityCard = QtWidgets.QFrame(self.content)
+        self.capabilityCard.setObjectName("capabilityCard")
+        capabilityCardLayout = QtWidgets.QHBoxLayout(self.capabilityCard)
+        capabilityCardLayout.setContentsMargins(14, 12, 14, 12)
+        capabilityCardLayout.setSpacing(12)
+
+        capabilityHeader = QtWidgets.QLabel(self.capabilityCard)
+        capabilityHeader.setObjectName("capabilityHeader")
+        capabilityHeader.setText("Activation capability")
+        capabilityHeader.setMinimumWidth(150)
+        capabilityCardLayout.addWidget(capabilityHeader)
+
+        capabilityCardIcon = QtWidgets.QLabel(self.capabilityCard)
+        capabilityCardIcon.setObjectName("capabilityIcon")
+        capabilityCardIcon.setAlignment(QtCore.Qt.AlignCenter)
+        capabilityCardIcon.setFixedSize(30, 30)
+        capabilityCardLayout.addWidget(capabilityCardIcon)
+
+        capabilityCardText = QtWidgets.QVBoxLayout()
+        capabilityCardText.setSpacing(1)
+        self.capabilityTitle = QtWidgets.QLabel(self.capabilityCard)
+        self.capabilityTitle.setObjectName("capabilityTitle")
+        capabilityCardText.addWidget(self.capabilityTitle)
+        self.capabilitySubtitle = QtWidgets.QLabel(self.capabilityCard)
+        self.capabilitySubtitle.setObjectName("capabilitySubtitle")
+        self.capabilitySubtitle.setWordWrap(True)
+        capabilityCardText.addWidget(self.capabilitySubtitle)
+        capabilityCardLayout.addLayout(capabilityCardText, 1)
+        contentLayout.addWidget(self.capabilityCard)
 
         # Backend-compatible hidden labels
         self.frame_4 = QtWidgets.QFrame(self.content)
@@ -428,7 +449,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         def sync_state():
-            name = self.deviceName.text().strip() or "No device connected"
+            name = self.deviceName.text().strip() or "iPhone 16 Pro"
             udid = self.deviceUDID.text().strip()
             ios_text = self.iOSVersion.text().strip()
             if ios_text.startswith("iOS Version:"):
@@ -436,7 +457,7 @@ class Ui_MainWindow(object):
             else:
                 ios_value = self.iOS or "—"
             self.iosVersionLarge.setText(ios_value if ios_value else "—")
-            self.buildNumber.setText("Build number: —")
+            self.buildNumber.setText("Build number: 23C90")
             if not udid:
                 self.deviceUDID.setText("UDID: —")
 
@@ -629,9 +650,9 @@ class Ui_MainWindow(object):
             self._search_thread.start()
 
     def _apply_fake_device(self):
-        fake_name = "iPhone 14 Pro Max"
-        fake_ios = "18.3.2"
-        fake_udid = "00000000-0000-4000-8000-000000000001"
+        fake_name = "iPhone 16 Pro"
+        fake_ios = "26.6.2"
+        fake_udid = "A19335BC-3136-4076-871F-D1D38E22FA60"
 
         self.iOS = fake_ios
         self.device_info = {
@@ -1862,15 +1883,15 @@ class Ui_MainWindow(object):
         self.settingsButton.setText(_translate("MainWindow", "Settings"))
         self.themeButton.setText(_translate("MainWindow", "☀  Light"))
         self.iosBadge.setText(_translate("MainWindow", "iOS"))
-        self.iosVersionLarge.setText(_translate("MainWindow", "—"))
-        self.buildNumber.setText(_translate("MainWindow", "Build number: —"))
+        self.iosVersionLarge.setText(_translate("MainWindow", "iOS 26.6.2"))
+        self.buildNumber.setText(_translate("MainWindow", "Build number: 23C90"))
         self.deviceSectionLabel.setText(_translate("MainWindow", "Device"))
-        self.deviceName.setText(_translate("MainWindow", "Device Name"))
-        self.deviceUDID.setText(_translate("MainWindow", "UDID: —"))
+        self.deviceName.setText(_translate("MainWindow", "iPhone 16 Pro"))
+        self.deviceUDID.setText(_translate("MainWindow", "UDID: A19335BC-3136-4076-871F-D1D38E22FA60"))
         self.activationState.setText(_translate("MainWindow", "Activation state: No"))
-        self.capabilityIcon.setText(_translate("MainWindow", "•"))
-        self.capabilityTitle.setText(_translate("MainWindow", "Checking"))
-        self.capabilitySubtitle.setText(_translate("MainWindow", "Checking local compatibility…"))
+        self.capabilityIcon.setText(_translate("MainWindow", "×"))
+        self.capabilityTitle.setText(_translate("MainWindow", "Unsupported"))
+        self.capabilitySubtitle.setText(_translate("MainWindow", "Your device is not supported by this version of iOS."))
         self.activateButton.setText(_translate("MainWindow", "Activate"))
         self.messageTitle.setText(_translate("MainWindow", "Status"))
         self.messageContent.setText(_translate("MainWindow", ""))
