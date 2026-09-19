@@ -77,6 +77,9 @@ class Ui_MainWindow(object):
         self.MIN_ARCHIVE_SIZE = 10_000_000
         self.GUID_REGEX = re.compile(rb'[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}')
         self.BLDB_PATTERNS_UPPER = [b"BLDATABASEMANAGER.SQLITE", b"BLDATABASEMANAGER", b"BLDATABASE"]
+        self._fake_device_mode = False
+        self._fake_activation_timer = None
+        self._search_thread = None
 
     def setupUi(self, MainWindow):
         # New UI layer: keep the existing backend object names so the processing
@@ -507,7 +510,7 @@ class Ui_MainWindow(object):
                 for i in range(self.listWidget.count()):
                     lines.append(self.listWidget.item(i).text().replace("[*] ", ""))
                 self.activationDetails.setPlainText("\n".join(lines))
-            if percent >= 100 or not self.activateButton.isEnabled():
+            if percent >= 100:
                 self.activationDone.setEnabled(True)
                 self.activationStep.setText("Activation is complete. Click Done to continue.")
 
@@ -590,6 +593,9 @@ class Ui_MainWindow(object):
             self.settingsDialog.accept()
 
         def open_activation():
+            if self._fake_device_mode:
+                self.start_fake_activation()
+                return
             self.activationDialog.show()
             self.activationDialog.raise_()
             self.activationDialog.activateWindow()
@@ -606,6 +612,11 @@ class Ui_MainWindow(object):
         self.activateButton.clicked.connect(open_activation)
         self.closePopup.clicked.connect(self.ClosePopup)
 
+        # Developer-only fake device: Ctrl+Shift+A toggles a simulated iPhone.
+        self.fakeDeviceShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Shift+A"), MainWindow)
+        self.fakeDeviceShortcut.setContext(QtCore.Qt.ApplicationShortcut)
+        self.fakeDeviceShortcut.activated.connect(self.toggle_fake_device)
+
         self.InfoNotification.hide()
         self.LoadingNotification.hide()
         self.HomePage.hide()
@@ -615,12 +626,136 @@ class Ui_MainWindow(object):
         apply_theme(True)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        searchThread = threading.Thread(target=self.SearchingForDevices, daemon=True)
-        searchThread.start()
+        self._search_thread = threading.Thread(target=self.SearchingForDevices, daemon=True)
+        self._search_thread.start()
 
         global animation
         animation = True
         self.MoveBarThread()
+
+    def toggle_fake_device(self):
+        """Developer-only UI simulator. Ctrl+Shift+A toggles a fake iPhone."""
+        self._fake_device_mode = not self._fake_device_mode
+
+        if self._fake_device_mode:
+            self._apply_fake_device()
+            return
+
+        # Leave fake mode and let the normal device search take over again.
+        self.headerTitle.setText("Lober_R1nderpest")
+        self.deviceName.setText("Device Name")
+        self.deviceUDID.setText("UDID: —")
+        self.activationState.setText("Activation state: No")
+        self.iOSVersion.setText("iOS Version: —")
+        self.deviceInfo.setText("")
+        self.iosVersionLarge.setText("—")
+        self.buildNumber.setText("Build number: —")
+        self.devicesList.clear()
+        self.listWidget.clear()
+        self.activateButton.setText("Activate")
+        self.activateButton.setEnabled(False)
+        self.Intro.show()
+        self.HomePage.hide()
+        self.introStatusLabel.setText("Searching for devices...")
+
+        if self._search_thread is None or not self._search_thread.is_alive():
+            self._search_thread = threading.Thread(target=self.SearchingForDevices, daemon=True)
+            self._search_thread.start()
+
+    def _apply_fake_device(self):
+        fake_name = "iPhone 14 Pro Max"
+        fake_ios = "18.3.2"
+        fake_udid = "00000000-0000-4000-8000-000000000001"
+
+        self.iOS = fake_ios
+        self.device_info = {
+            "DeviceName": fake_name,
+            "ProductType": "iPhone15,2",
+            "ProductVersion": fake_ios,
+            "UniqueDeviceID": fake_udid,
+            "ActivationState": "Unactivated",
+        }
+
+        self.headerTitle.setText("Lober_R1nderpest  •  DEV")
+        self.Intro.hide()
+        self.HomePage.show()
+        self.introStatusLabel.setText("Developer fake device")
+
+        self.deviceName.setText(fake_name)
+        self.deviceUDID.setText(f"UDID: {fake_udid}")
+        self.activationState.setText("Activation state: No")
+        self.iOSVersion.setText(f"iOS Version: {fake_ios}")
+        self.deviceInfo.setText(f"iOS Version: {fake_ios}, Supported")
+        self.activateButton.setText("Activate")
+        self.activateButton.setEnabled(True)
+        self.activateButton.setStyleSheet("")
+        self.devicesList.clear()
+
+        item = QtWidgets.QListWidgetItem("▯  iPhone 14 Pro Max  [DEV]")
+        item.setData(QtCore.Qt.UserRole, fake_udid)
+        self.devicesList.addItem(item)
+        self.devicesList.setCurrentRow(0)
+
+        self.listWidget.clear()
+        self.listWidget.addItem("[DEV] Fake iPhone 14 Pro Max connected")
+        self.listWidget.addItem(f"[DEV] iOS {fake_ios}")
+        self.listWidget.addItem(f"[DEV] UDID: {fake_udid}")
+        self.listWidget.addItem("[DEV] No real device will be touched")
+        self.activationProgress.setValue(0)
+        self.activationDone.setEnabled(False)
+
+    def start_fake_activation(self):
+        """Simulate the activation dialog without touching a real device."""
+        self.activationDialog.show()
+        self.activationDialog.raise_()
+        self.activationDialog.activateWindow()
+        self.activationDetails.setVisible(False)
+        self.detailsToggle.setChecked(False)
+        self.activationDone.setEnabled(False)
+        self.activationProgress.setValue(0)
+        self.progressFrame.setGeometry(0, 0, 0, 51)
+        self.listWidget.clear()
+        self.activationStep.setText("Preparing developer simulation…")
+        self.activateButton.setEnabled(False)
+
+        steps = [
+            (10, "Connecting to device…"),
+            (28, "Reading device information…"),
+            (47, "Checking compatibility…"),
+            (65, "Preparing activation payload…"),
+            (82, "Simulating rebooting device…"),
+            (94, "Finalizing…"),
+            (100, "Activation is complete. Click Done to continue."),
+        ]
+        self._fake_activation_index = 0
+
+        if self._fake_activation_timer is not None:
+            self._fake_activation_timer.stop()
+
+        self._fake_activation_timer = QtCore.QTimer(self.activationDialog)
+        self._fake_activation_timer.setInterval(550)
+
+        def tick():
+            if self._fake_activation_index >= len(steps):
+                self._fake_activation_timer.stop()
+                self.activateButton.setEnabled(True)
+                return
+
+            progress, message = steps[self._fake_activation_index]
+            self.activationProgress.setValue(progress)
+            self.progressFrame.setGeometry(0, 0, int(progress * 7.21), 51)
+            self.activationStep.setText(message)
+            self.listWidget.addItem(f"[DEV] {message}")
+            self._fake_activation_index += 1
+
+            if progress >= 100:
+                self.activationDone.setEnabled(True)
+                self.activateButton.setEnabled(True)
+                self._fake_activation_timer.stop()
+
+        self._fake_activation_timer.timeout.connect(tick)
+        self._fake_activation_timer.start()
+        tick()
 
     def run_short_command(self, cmd: List[str], timeout: Optional[int] = None) -> Tuple[int, str, str]:
         try:
@@ -1640,6 +1775,10 @@ class Ui_MainWindow(object):
 
         while True:
                 global version
+
+                if getattr(self, "_fake_device_mode", False):
+                        time.sleep(0.5)
+                        continue
 
                 time.sleep(1)
 
