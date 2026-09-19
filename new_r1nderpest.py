@@ -155,6 +155,7 @@ class Ui_MainWindow(object):
         build = asset.get("build", "") or "—"
         self.iosVersionLarge.setText(f"iOS {ios_version}" if ios_version else "—")
         self.buildNumber.setText(f"Build number: {build}")
+        self.iOSVersion.setText(f"iOS Version: {ios_version}" if ios_version else "iOS Version: —")
         self.deviceName.setText(resolved_name)
         self.deviceUDID.setText(f"UDID: {udid}" if udid else "UDID: —")
 
@@ -588,18 +589,22 @@ class Ui_MainWindow(object):
         def sync_state():
             name = self.deviceName.text().strip() or "iPhone 16 Pro"
             udid = self.deviceUDID.text().strip()
-            ios_text = self.iOSVersion.text().strip()
-            if ios_text.startswith("iOS Version:"):
-                ios_value = ios_text.split(":", 1)[1].strip()
-            else:
-                ios_value = self.iOS or "—"
-            self.iosVersionLarge.setText(ios_value if ios_value else "—")
-            self.buildNumber.setText("Build number: 23C90")
+            selected_assets = self._selected_device_assets or {}
+            ios_value = selected_assets.get("ios_version") or self.iOS or "—"
+            build_value = selected_assets.get("build") or "—"
+            self.iosVersionLarge.setText(f"iOS {ios_value}" if ios_value else "—")
+            self.buildNumber.setText(f"Build number: {build_value}")
             if not udid:
                 self.deviceUDID.setText("UDID: —")
 
             product_type = self.device_info.get("ProductType", "") if isinstance(self.device_info, dict) else ""
-            if self.devicesList.count() == 0 or self.devicesList.currentItem() is None:
+            current_item = self.devicesList.currentItem()
+            current_data = current_item.data(QtCore.Qt.UserRole) if current_item else {}
+            if (
+                current_item is None
+                or not isinstance(current_data, dict)
+                or current_data.get("udid") != udid
+            ):
                 self._upsert_device_item(name, udid, product_type)
 
             status_text = self.deviceInfo.text().lower()
