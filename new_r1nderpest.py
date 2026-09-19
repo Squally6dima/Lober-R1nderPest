@@ -77,383 +77,545 @@ class Ui_MainWindow(object):
         self.MIN_ARCHIVE_SIZE = 10_000_000
         self.GUID_REGEX = re.compile(rb'[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}')
         self.BLDB_PATTERNS_UPPER = [b"BLDATABASEMANAGER.SQLITE", b"BLDATABASEMANAGER", b"BLDATABASE"]
+
     def setupUi(self, MainWindow):
-        QFontDatabase.addApplicationFont(os.path.join(base_dir, "./fonts/FuturaCyrillicBold.ttf"))
+        # New UI layer: keep the existing backend object names so the processing
+        # code below can continue to work without a full backend rewrite.
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1087, 630)
-        MainWindow.setMinimumSize(QtCore.QSize(1087, 630))
-        MainWindow.setMaximumSize(QtCore.QSize(1087, 630))
+        MainWindow.resize(1080, 640)
+        MainWindow.setMinimumSize(QtCore.QSize(1080, 640))
+        MainWindow.setMaximumSize(QtCore.QSize(1080, 640))
+        try:
+            MainWindow.setWindowIcon(QtGui.QIcon(os.path.join(base_dir, "icon.png")))
+        except Exception:
+            pass
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.rootLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.rootLayout.setContentsMargins(0, 0, 0, 0)
+        self.rootLayout.setSpacing(0)
+
+        # Intro
         self.Intro = QtWidgets.QFrame(self.centralwidget)
-        self.Intro.setGeometry(QtCore.QRect(-10, -10, 1101, 641))
-        self.Intro.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.Intro.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.Intro.setFrameShadow(QtWidgets.QFrame.Raised)
         self.Intro.setObjectName("Intro")
-        self.label = QtWidgets.QLabel(self.Intro)
-        self.label.setGeometry(QtCore.QRect(120, 110, 441, 151))
-        self.label.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/logo (1).png")))
-        self.label.setScaledContents(True)
-        self.label.setObjectName("label")
-        self.label_2 = QtWidgets.QLabel(self.Intro)
-        self.label_2.setGeometry(QtCore.QRect(420, 10, 681, 631))
-        self.label_2.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.label_2.setText("")
-        self.label_2.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/glow_phone.png")))
-        self.label_2.setScaledContents(True)
-        self.label_2.setObjectName("label_2")
+        introLayout = QtWidgets.QVBoxLayout(self.Intro)
+        introLayout.setContentsMargins(48, 36, 48, 36)
+        introLayout.setSpacing(14)
+
+        self.introLogo = QtWidgets.QLabel(self.Intro)
+        self.introLogo.setObjectName("introLogo")
+        self.introLogo.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "icon.png")))
+        self.introLogo.setScaledContents(True)
+        self.introLogo.setFixedSize(70, 70)
+        introLayout.addWidget(self.introLogo, 0, QtCore.Qt.AlignLeft)
+
         self.welcomeTitle = QtWidgets.QLabel(self.Intro)
-        self.welcomeTitle.setGeometry(QtCore.QRect(100, 220, 421, 91))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(26)
-        font.setBold(True)
-        font.setWeight(75)
-        self.welcomeTitle.setFont(font)
-        self.welcomeTitle.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);")
         self.welcomeTitle.setObjectName("welcomeTitle")
+        introLayout.addWidget(self.welcomeTitle)
+
         self.welcomeMessage = QtWidgets.QLabel(self.Intro)
-        self.welcomeMessage.setGeometry(QtCore.QRect(100, 290, 431, 111))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(16)
-        font.setBold(True)
-        font.setWeight(75)
-        self.welcomeMessage.setFont(font)
-        self.welcomeMessage.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);")
-        self.welcomeMessage.setWordWrap(True)
         self.welcomeMessage.setObjectName("welcomeMessage")
+        self.welcomeMessage.setWordWrap(True)
+        self.welcomeMessage.setMaximumWidth(720)
+        introLayout.addWidget(self.welcomeMessage)
+
+        introLayout.addSpacing(20)
         self.introStatusLabel = QtWidgets.QLabel(self.Intro)
-        self.introStatusLabel.setGeometry(QtCore.QRect(100, 430, 441, 21))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.introStatusLabel.setFont(font)
-        self.introStatusLabel.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);")
-        self.introStatusLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.introStatusLabel.setObjectName("introStatusLabel")
+        introLayout.addWidget(self.introStatusLabel)
+
         self.frame = QtWidgets.QFrame(self.Intro)
-        self.frame.setGeometry(QtCore.QRect(170, 470, 311, 21))
-        self.frame.setStyleSheet("background-color: rgb(47, 47, 47);\n"
-"border-radius: 10px;")
-        self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
+        self.frame.setFixedSize(311, 21)
         self.pb1 = QtWidgets.QFrame(self.frame)
-        self.pb1.setGeometry(QtCore.QRect(0, 0, 31, 21))
-        self.pb1.setStyleSheet("background-color: rgb(255, 255, 255);\n"
-"border-radius: 10px;")
-        self.pb1.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.pb1.setFrameShadow(QtWidgets.QFrame.Raised)
         self.pb1.setObjectName("pb1")
-        self.label_5 = QtWidgets.QLabel(self.Intro)
-        self.label_5.setGeometry(QtCore.QRect(10, 360, 1101, 281))
-        self.label_5.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.label_5.setText("")
-        self.label_5.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/bg_GLOW.png")))
-        self.label_5.setScaledContents(True)
-        self.label_5.setObjectName("label_5")
+        self.pb1.setGeometry(QtCore.QRect(0, 0, 31, 21))
+        introLayout.addWidget(self.frame, 0, QtCore.Qt.AlignLeft)
+        introLayout.addStretch(1)
+
+        # Main page
         self.HomePage = QtWidgets.QFrame(self.centralwidget)
-        self.HomePage.setGeometry(QtCore.QRect(-10, -10, 1101, 641))
-        self.HomePage.setStyleSheet("background-color: rgb(26, 26, 26);")
-        self.HomePage.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.HomePage.setFrameShadow(QtWidgets.QFrame.Raised)
         self.HomePage.setObjectName("HomePage")
-        self.label_3 = QtWidgets.QLabel(self.HomePage)
-        self.label_3.setGeometry(QtCore.QRect(770, 10, 411, 131))
-        self.label_3.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.label_3.setText("")
-        self.label_3.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/logo (1).png")))
-        self.label_3.setScaledContents(True)
-        self.label_3.setObjectName("label_3")
-        self.deviceName = QtWidgets.QLabel(self.HomePage)
-        self.deviceName.setGeometry(QtCore.QRect(40, 30, 601, 61))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(26)
-        font.setBold(True)
-        font.setWeight(75)
-        self.deviceName.setFont(font)
-        self.deviceName.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);")
-        self.deviceName.setObjectName("deviceName")
-        self.deviceInfo = QtWidgets.QLabel(self.HomePage)
-        self.deviceInfo.setGeometry(QtCore.QRect(40, 70, 601, 61))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.deviceInfo.setFont(font)
-        self.deviceInfo.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);")
-        self.deviceInfo.setObjectName("deviceInfo")
-        self.frame_3 = QtWidgets.QFrame(self.HomePage)
-        self.frame_3.setGeometry(QtCore.QRect(40, 130, 291, 481))
-        self.frame_3.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"border-radius: 20px;\n"
-"border: 0.5px solid rgb(120, 120, 120);")
-        self.frame_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_3.setObjectName("frame_3")
-        self.label_4 = QtWidgets.QLabel(self.frame_3)
-        self.label_4.setGeometry(QtCore.QRect(40, 18, 211, 441))
-        self.label_4.setStyleSheet("border-radius: 0px;\n"
-"border: 0px solid rgb(120, 120, 120);")
-        self.label_4.setText("")
+        homeLayout = QtWidgets.QHBoxLayout(self.HomePage)
+        homeLayout.setContentsMargins(0, 0, 0, 0)
+        homeLayout.setSpacing(0)
+
+        self.sidebar = QtWidgets.QFrame(self.HomePage)
+        self.sidebar.setObjectName("sidebar")
+        self.sidebar.setFixedWidth(178)
+        sidebarLayout = QtWidgets.QVBoxLayout(self.sidebar)
+        sidebarLayout.setContentsMargins(12, 18, 12, 14)
+        sidebarLayout.setSpacing(8)
+
+        self.devicesCaption = QtWidgets.QLabel(self.sidebar)
+        self.devicesCaption.setObjectName("devicesCaption")
+        sidebarLayout.addWidget(self.devicesCaption, 0, QtCore.Qt.AlignLeft)
+
+        self.devicesList = QtWidgets.QListWidget(self.sidebar)
+        self.devicesList.setObjectName("devicesList")
+        self.devicesList.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.devicesList.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.devicesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.devicesList.setSpacing(2)
+        sidebarLayout.addWidget(self.devicesList, 1)
+
+        self.themeButton = QtWidgets.QPushButton(self.sidebar)
+        self.themeButton.setObjectName("themeButton")
+        self.themeButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.themeButton.setFixedHeight(30)
+        sidebarLayout.addWidget(self.themeButton)
+        homeLayout.addWidget(self.sidebar)
+
+        self.content = QtWidgets.QFrame(self.HomePage)
+        self.content.setObjectName("content")
+        contentLayout = QtWidgets.QVBoxLayout(self.content)
+        contentLayout.setContentsMargins(22, 18, 22, 20)
+        contentLayout.setSpacing(12)
+
+        header = QtWidgets.QHBoxLayout()
+        self.headerTitle = QtWidgets.QLabel(self.content)
+        self.headerTitle.setObjectName("headerTitle")
+        header.addWidget(self.headerTitle)
+        header.addStretch(1)
+        self.themeHint = QtWidgets.QLabel(self.content)
+        self.themeHint.setObjectName("themeHint")
+        header.addWidget(self.themeHint)
+        self.settingsButton = QtWidgets.QPushButton(self.content)
+        self.settingsButton.setObjectName("settingsButton")
+        self.settingsButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.settingsButton.setFixedHeight(32)
+        header.addWidget(self.settingsButton)
+        contentLayout.addLayout(header)
+
+        self.summaryCard = QtWidgets.QFrame(self.content)
+        self.summaryCard.setObjectName("summaryCard")
+        summaryLayout = QtWidgets.QHBoxLayout(self.summaryCard)
+        summaryLayout.setContentsMargins(14, 12, 14, 12)
+        summaryLayout.setSpacing(12)
+
+        self.iosBadge = QtWidgets.QLabel(self.summaryCard)
+        self.iosBadge.setObjectName("iosBadge")
+        self.iosBadge.setAlignment(QtCore.Qt.AlignCenter)
+        self.iosBadge.setFixedSize(46, 46)
+        summaryLayout.addWidget(self.iosBadge)
+
+        summaryText = QtWidgets.QVBoxLayout()
+        summaryText.setSpacing(0)
+        self.iosVersionLarge = QtWidgets.QLabel(self.summaryCard)
+        self.iosVersionLarge.setObjectName("iosVersionLarge")
+        summaryText.addWidget(self.iosVersionLarge)
+        self.buildNumber = QtWidgets.QLabel(self.summaryCard)
+        self.buildNumber.setObjectName("buildNumber")
+        summaryText.addWidget(self.buildNumber)
+        summaryLayout.addLayout(summaryText)
+        summaryLayout.addStretch(1)
+        contentLayout.addWidget(self.summaryCard)
+
+        self.deviceCard = QtWidgets.QFrame(self.content)
+        self.deviceCard.setObjectName("deviceCard")
+        deviceCardLayout = QtWidgets.QHBoxLayout(self.deviceCard)
+        deviceCardLayout.setContentsMargins(14, 14, 14, 14)
+        deviceCardLayout.setSpacing(16)
+
+        self.devicePreviewFrame = QtWidgets.QFrame(self.deviceCard)
+        self.devicePreviewFrame.setObjectName("devicePreviewFrame")
+        self.devicePreviewFrame.setFixedWidth(96)
+        previewLayout = QtWidgets.QVBoxLayout(self.devicePreviewFrame)
+        previewLayout.setContentsMargins(6, 6, 6, 6)
+        self.label_4 = QtWidgets.QLabel(self.devicePreviewFrame)
+        self.label_4.setObjectName("label_4")
         self.label_4.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/ios26hello.png")))
         self.label_4.setScaledContents(True)
-        self.label_4.setObjectName("label_4")
-        self.activateButton = QtWidgets.QPushButton(self.HomePage)
-        self.activateButton.setGeometry(QtCore.QRect(350, 560, 721, 51))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.activateButton.setFont(font)
-        self.activateButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.activateButton.setStyleSheet("QPushButton {\n"
-"    background-color: rgb(255, 255, 255);\n"
-"    color: rgb(0, 0, 0);\n"
-"    border-radius: 20px;\n"
-"}\n"
-"\n"
-"QPushButton:hover {\n"
-"    \n"
-"    background-color: rgb(226, 226, 226);\n"
-"    color: rgb(0, 0, 0);\n"
-"    border-radius: 20px;\n"
-"}")
-        self.activateButton.setObjectName("activateButton")
-        self.pbFrame = QtWidgets.QFrame(self.HomePage)
-        self.pbFrame.setGeometry(QtCore.QRect(350, 560, 721, 51))
-        self.pbFrame.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"color: rgb(255, 255, 255);\n"
-"border-radius: 20px;\n"
-"")
-        self.pbFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.pbFrame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.pbFrame.setObjectName("pbFrame")
-        self.progressFrame = QtWidgets.QFrame(self.pbFrame)
-        self.progressFrame.setGeometry(QtCore.QRect(0, 0, 0, 51))
-        self.progressFrame.setStyleSheet("background-color: rgb(255, 255, 255);\n"
-"color: rgb(255, 255, 255);\n"
-"border-radius: 20px;\n"
-"")
-        self.progressFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.progressFrame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.progressFrame.setObjectName("progressFrame")
-        self.frame_4 = QtWidgets.QFrame(self.HomePage)
-        self.frame_4.setGeometry(QtCore.QRect(530, 490, 371, 51))
-        self.frame_4.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"border-radius: 20px;\n"
-"border: 0.5px solid rgb(120, 120, 120);")
-        self.frame_4.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_4.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_4.setObjectName("frame_4")
-        self.deviceUDID = QtWidgets.QLabel(self.frame_4)
-        self.deviceUDID.setGeometry(QtCore.QRect(10, 0, 351, 51))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.deviceUDID.setFont(font)
-        self.deviceUDID.setStyleSheet("color: rgb(255, 255, 255);\n"
-"background-color: rgba(255, 255, 255, 0);\n"
-"border-radius: 0px;\n"
-"border: 0px solid rgb(120, 120, 120);")
+        self.label_4.setMinimumHeight(142)
+        previewLayout.addWidget(self.label_4, 1)
+        deviceCardLayout.addWidget(self.devicePreviewFrame)
+
+        details = QtWidgets.QVBoxLayout()
+        details.setSpacing(4)
+        self.deviceSectionLabel = QtWidgets.QLabel(self.deviceCard)
+        self.deviceSectionLabel.setObjectName("deviceSectionLabel")
+        details.addWidget(self.deviceSectionLabel)
+        self.deviceName = QtWidgets.QLabel(self.deviceCard)
+        self.deviceName.setObjectName("deviceName")
+        details.addWidget(self.deviceName)
+        self.deviceUDID = QtWidgets.QLabel(self.deviceCard)
         self.deviceUDID.setObjectName("deviceUDID")
-        self.frame_7 = QtWidgets.QFrame(self.HomePage)
-        self.frame_7.setGeometry(QtCore.QRect(350, 490, 171, 51))
-        self.frame_7.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"border-radius: 20px;\n"
-"border: 0.5px solid rgb(120, 120, 120);")
-        self.frame_7.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_7.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_7.setObjectName("frame_7")
-        self.activationState = QtWidgets.QLabel(self.frame_7)
-        self.activationState.setGeometry(QtCore.QRect(10, 0, 161, 51))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(12)
-        font.setBold(True)
-        font.setWeight(75)
-        self.activationState.setFont(font)
-        self.activationState.setStyleSheet("color: rgb(255, 255, 255);\n"
-"background-color: rgba(255, 255, 255, 0);\n"
-"border: 0px solid rgb(120, 120, 120);")
+        self.deviceUDID.setWordWrap(True)
+        details.addWidget(self.deviceUDID)
+        self.activationState = QtWidgets.QLabel(self.deviceCard)
         self.activationState.setObjectName("activationState")
-        self.frame_8 = QtWidgets.QFrame(self.HomePage)
-        self.frame_8.setGeometry(QtCore.QRect(910, 490, 161, 51))
-        self.frame_8.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"border-radius: 20px;\n"
-"border: 0.5px solid rgb(120, 120, 120);")
-        self.frame_8.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_8.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_8.setObjectName("frame_8")
-        self.iOSVersion = QtWidgets.QLabel(self.frame_8)
-        self.iOSVersion.setGeometry(QtCore.QRect(10, 0, 191, 51))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.iOSVersion.setFont(font)
-        self.iOSVersion.setStyleSheet("color: rgb(255, 255, 255);\n"
-"background-color: rgba(255, 255, 255, 0);\n"
-"border-radius: 0px;\n"
-"border: 0px solid rgb(120, 120, 120);")
+        details.addWidget(self.activationState)
+        details.addStretch(1)
+
+        capabilityRow = QtWidgets.QHBoxLayout()
+        capabilityRow.setSpacing(8)
+        self.capabilityIcon = QtWidgets.QLabel(self.deviceCard)
+        self.capabilityIcon.setObjectName("capabilityIcon")
+        self.capabilityIcon.setAlignment(QtCore.Qt.AlignCenter)
+        self.capabilityIcon.setFixedSize(28, 28)
+        capabilityRow.addWidget(self.capabilityIcon)
+
+        capabilityText = QtWidgets.QVBoxLayout()
+        capabilityText.setSpacing(0)
+        self.capabilityTitle = QtWidgets.QLabel(self.deviceCard)
+        self.capabilityTitle.setObjectName("capabilityTitle")
+        capabilityText.addWidget(self.capabilityTitle)
+        self.capabilitySubtitle = QtWidgets.QLabel(self.deviceCard)
+        self.capabilitySubtitle.setObjectName("capabilitySubtitle")
+        self.capabilitySubtitle.setWordWrap(True)
+        capabilityText.addWidget(self.capabilitySubtitle)
+        capabilityRow.addLayout(capabilityText)
+        details.addLayout(capabilityRow)
+        deviceCardLayout.addLayout(details, 1)
+        contentLayout.addWidget(self.deviceCard, 1)
+
+        # Backend-compatible hidden labels
+        self.frame_4 = QtWidgets.QFrame(self.content)
+        self.frame_4.setObjectName("frame_4")
+        self.deviceInfo = QtWidgets.QLabel(self.frame_4)
+        self.deviceInfo.setObjectName("deviceInfo")
+        self.deviceInfo.hide()
+        self.iOSVersion = QtWidgets.QLabel(self.frame_4)
         self.iOSVersion.setObjectName("iOSVersion")
-        self.frame_2 = QtWidgets.QFrame(self.HomePage)
-        self.frame_2.setGeometry(QtCore.QRect(350, 130, 721, 351))
-        self.frame_2.setStyleSheet("background-color: rgb(18, 18, 18);\n"
-"border-radius: 20px;\n"
-"border: 0.5px solid rgb(120, 120, 120);")
-        self.frame_2.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_2.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_2.setObjectName("frame_2")
-        self.listWidget = QtWidgets.QListWidget(self.frame_2)
-        self.listWidget.setGeometry(QtCore.QRect(20, 20, 681, 311))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        self.listWidget.setFont(font)
-        self.listWidget.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"color: rgb(255, 255, 255);\n"
-"border: 0px solid rgb(120, 120, 120);")
-        self.listWidget.setAutoScrollMargin(10)
-        self.listWidget.setWordWrap(True)
-        self.listWidget.setObjectName("listWidget")
+        self.iOSVersion.hide()
+        contentLayout.addWidget(self.frame_4)
+
+        self.pbFrame = QtWidgets.QFrame(self.content)
+        self.pbFrame.setObjectName("pbFrame")
+        self.pbFrame.setFixedHeight(42)
+        self.progressFrame = QtWidgets.QFrame(self.pbFrame)
+        self.progressFrame.setObjectName("progressFrame")
+        self.progressFrame.setGeometry(QtCore.QRect(0, 0, 0, 42))
+        contentLayout.addWidget(self.pbFrame)
+
+        self.activateButton = QtWidgets.QPushButton(self.content)
+        self.activateButton.setObjectName("activateButton")
+        self.activateButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.activateButton.setFixedHeight(42)
+        contentLayout.addWidget(self.activateButton)
+        homeLayout.addWidget(self.content, 1)
+
+        # Compatibility placeholders retained for older methods.
+        self.label_3 = QtWidgets.QLabel(self.HomePage)
+        self.label_3.hide()
+        self.label_5 = QtWidgets.QLabel(self.HomePage)
+        self.label_5.hide()
         self.label_6 = QtWidgets.QLabel(self.HomePage)
-        self.label_6.setGeometry(QtCore.QRect(410, -20, 711, 331))
-        self.label_6.setStyleSheet("background-color: rgba(255, 255, 255, 0);\n"
-"border-radius: 0px;")
-        self.label_6.setText("")
-        self.label_6.setPixmap(QtGui.QPixmap(os.path.join(base_dir, "./img/topGLOW.png")))
-        self.label_6.setScaledContents(True)
-        self.label_6.setObjectName("label_6")
-        self.label_3.raise_()
-        self.deviceName.raise_()
-        self.deviceInfo.raise_()
-        self.frame_3.raise_()
-        self.pbFrame.raise_()
-        self.activateButton.raise_()
-        self.frame_4.raise_()
-        self.frame_7.raise_()
-        self.frame_8.raise_()
-        self.frame_2.raise_()
-        self.label_6.raise_()
+        self.label_6.hide()
+
+        # Native notifications used by the existing backend.
         self.InfoNotification = QtWidgets.QFrame(self.centralwidget)
-        self.InfoNotification.setGeometry(QtCore.QRect(-10, -20, 1101, 651))
-        self.InfoNotification.setStyleSheet("background-color: rgba(0, 0, 0, 125);")
-        self.InfoNotification.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.InfoNotification.setFrameShadow(QtWidgets.QFrame.Raised)
         self.InfoNotification.setObjectName("InfoNotification")
-        self.frame_5 = QtWidgets.QFrame(self.InfoNotification)
-        self.frame_5.setGeometry(QtCore.QRect(770, 40, 301, 141))
-        self.frame_5.setStyleSheet("background-color: rgb(255, 255, 255);\n"
-"border-radius: 20px;")
-        self.frame_5.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_5.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_5.setObjectName("frame_5")
-        self.messageTitle = QtWidgets.QLabel(self.frame_5)
-        self.messageTitle.setGeometry(QtCore.QRect(10, 10, 271, 31))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.messageTitle.setFont(font)
-        self.messageTitle.setStyleSheet("color: rgb(0, 0, 0);\n"
-"background-color: rgba(255, 255, 255, 0);")
+        infoLayout = QtWidgets.QVBoxLayout(self.InfoNotification)
+        infoLayout.setContentsMargins(16, 14, 16, 14)
+        infoLayout.setSpacing(6)
+        self.messageTitle = QtWidgets.QLabel(self.InfoNotification)
         self.messageTitle.setObjectName("messageTitle")
-        self.messageContent = QtWidgets.QLabel(self.frame_5)
-        self.messageContent.setGeometry(QtCore.QRect(10, 40, 271, 81))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        self.messageContent.setFont(font)
-        self.messageContent.setStyleSheet("color: rgb(0, 0, 0);\n"
-"background-color: rgba(255, 255, 255, 0);")
-        self.messageContent.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.messageContent.setWordWrap(True)
+        infoLayout.addWidget(self.messageTitle)
+        self.messageContent = QtWidgets.QLabel(self.InfoNotification)
         self.messageContent.setObjectName("messageContent")
+        self.messageContent.setWordWrap(True)
+        infoLayout.addWidget(self.messageContent)
         self.closePopup = QtWidgets.QPushButton(self.InfoNotification)
-        self.closePopup.setGeometry(QtCore.QRect(930, 140, 131, 31))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.closePopup.setFont(font)
-        self.closePopup.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.closePopup.setStyleSheet("background-color: rgb(226, 226, 226);\n"
-"border-radius: 15px;\n"
-"color: rgb(0, 0, 0);")
         self.closePopup.setObjectName("closePopup")
+        self.closePopup.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.closePopup.setFixedHeight(30)
+        infoLayout.addWidget(self.closePopup, 0, QtCore.Qt.AlignRight)
+
         self.LoadingNotification = QtWidgets.QFrame(self.centralwidget)
-        self.LoadingNotification.setGeometry(QtCore.QRect(-10, -20, 1101, 651))
-        self.LoadingNotification.setStyleSheet("background-color: rgba(0, 0, 0, 125);")
-        self.LoadingNotification.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.LoadingNotification.setFrameShadow(QtWidgets.QFrame.Raised)
         self.LoadingNotification.setObjectName("LoadingNotification")
-        self.frame_6 = QtWidgets.QFrame(self.LoadingNotification)
-        self.frame_6.setGeometry(QtCore.QRect(770, 40, 301, 71))
-        self.frame_6.setStyleSheet("background-color: rgb(255, 255, 255);\n"
-"border-radius: 20px;")
-        self.frame_6.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_6.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_6.setObjectName("frame_6")
-        self.loadingText = QtWidgets.QLabel(self.frame_6)
-        self.loadingText.setGeometry(QtCore.QRect(10, 10, 271, 51))
-        font = QtGui.QFont()
-        font.setFamily("Futura Cyrillic Bold")
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
-        self.loadingText.setFont(font)
-        self.loadingText.setStyleSheet("color: rgb(0, 0, 0);\n"
-"background-color: rgba(255, 255, 255, 0);")
-        self.loadingText.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        loadingLayout = QtWidgets.QHBoxLayout(self.LoadingNotification)
+        loadingLayout.setContentsMargins(16, 10, 16, 10)
+        self.loadingText = QtWidgets.QLabel(self.LoadingNotification)
         self.loadingText.setObjectName("loadingText")
-        self.HomePage.raise_()
-        self.InfoNotification.raise_()
-        self.LoadingNotification.raise_()
-        self.Intro.raise_()
+        loadingLayout.addWidget(self.loadingText)
+
+        self.rootLayout.addWidget(self.Intro)
+        self.rootLayout.addWidget(self.HomePage)
+
+        # Activation dialog
+        self.activationDialog = QtWidgets.QDialog(MainWindow)
+        self.activationDialog.setObjectName("activationDialog")
+        self.activationDialog.resize(480, 250)
+        activationLayout = QtWidgets.QVBoxLayout(self.activationDialog)
+        activationLayout.setContentsMargins(18, 16, 18, 16)
+        activationLayout.setSpacing(8)
+        self.activationDeviceTitle = QtWidgets.QLabel(self.activationDialog)
+        self.activationDeviceTitle.setObjectName("activationDeviceTitle")
+        activationLayout.addWidget(self.activationDeviceTitle)
+        self.activationProgress = QtWidgets.QProgressBar(self.activationDialog)
+        self.activationProgress.setObjectName("activationProgress")
+        self.activationProgress.setRange(0, 100)
+        self.activationProgress.setValue(0)
+        self.activationProgress.setTextVisible(False)
+        self.activationProgress.setFixedHeight(8)
+        activationLayout.addWidget(self.activationProgress)
+        self.activationStep = QtWidgets.QLabel(self.activationDialog)
+        self.activationStep.setObjectName("activationStep")
+        activationLayout.addWidget(self.activationStep)
+        self.detailsToggle = QtWidgets.QPushButton(self.activationDialog)
+        self.detailsToggle.setObjectName("detailsToggle")
+        self.detailsToggle.setCheckable(True)
+        self.detailsToggle.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        activationLayout.addWidget(self.detailsToggle, 0, QtCore.Qt.AlignLeft)
+        self.activationDetails = QtWidgets.QTextEdit(self.activationDialog)
+        self.activationDetails.setObjectName("activationDetails")
+        self.activationDetails.setReadOnly(True)
+        self.activationDetails.setFixedHeight(86)
+        self.activationDetails.setVisible(False)
+        activationLayout.addWidget(self.activationDetails)
+        activationButtons = QtWidgets.QHBoxLayout()
+        activationButtons.addStretch(1)
+        self.activationDone = QtWidgets.QPushButton(self.activationDialog)
+        self.activationDone.setObjectName("activationDone")
+        self.activationDone.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.activationDone.setFixedSize(74, 30)
+        self.activationDone.setEnabled(False)
+        activationButtons.addWidget(self.activationDone)
+        activationLayout.addLayout(activationButtons)
+
+        # Settings dialog
+        self.settingsDialog = QtWidgets.QDialog(MainWindow)
+        self.settingsDialog.setObjectName("settingsDialog")
+        self.settingsDialog.resize(520, 250)
+        settingsLayout = QtWidgets.QVBoxLayout(self.settingsDialog)
+        settingsLayout.setContentsMargins(18, 16, 18, 16)
+        settingsLayout.setSpacing(10)
+        self.settingsTitle = QtWidgets.QLabel(self.settingsDialog)
+        self.settingsTitle.setObjectName("settingsTitle")
+        settingsLayout.addWidget(self.settingsTitle)
+
+        self.apiUrlEdit = QtWidgets.QLineEdit(self.settingsDialog)
+        self.apiUrlEdit.setObjectName("apiUrlEdit")
+        self.apiUrlEdit.setText(self.api_url)
+        settingsLayout.addWidget(self.apiUrlEdit)
+        self.apiUrlHint = QtWidgets.QLabel(self.settingsDialog)
+        self.apiUrlHint.setObjectName("apiUrlHint")
+        settingsLayout.addWidget(self.apiUrlHint)
+
+        def make_path_row(initial_value, button_text):
+            row = QtWidgets.QHBoxLayout()
+            edit = QtWidgets.QLineEdit(self.settingsDialog)
+            button = QtWidgets.QPushButton(self.settingsDialog)
+            edit.setText(initial_value)
+            button.setText(button_text)
+            button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            row.addWidget(edit, 1)
+            row.addWidget(button)
+            return row, edit, button
+
+        deps_default = os.path.join(os.environ.get("ProgramFiles", "C:/Program Files"), "R1nderpest", "lib")
+        logs_default = os.path.join(os.path.expanduser("~"), "AppData", "Roaming", "R1nderpest", "Logs")
+        depRow, self.dependenciesEdit, self.dependenciesChoose = make_path_row(deps_default, "choose")
+        settingsLayout.addLayout(depRow)
+        logsRow, self.logsEdit, self.logsChoose = make_path_row(logs_default, "choose")
+        settingsLayout.addLayout(logsRow)
+
+        settingsButtons = QtWidgets.QHBoxLayout()
+        settingsButtons.addStretch(1)
+        self.settingsCancel = QtWidgets.QPushButton(self.settingsDialog)
+        self.settingsCancel.setObjectName("settingsCancel")
+        self.settingsCancel.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        settingsButtons.addWidget(self.settingsCancel)
+        self.settingsSave = QtWidgets.QPushButton(self.settingsDialog)
+        self.settingsSave.setObjectName("settingsSave")
+        self.settingsSave.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        settingsButtons.addWidget(self.settingsSave)
+        settingsLayout.addLayout(settingsButtons)
+
         MainWindow.setCentralWidget(self.centralwidget)
 
-        searchThread = threading.Thread(target=self.SearchingForDevices)
-        searchThread.start()
+        def sync_state():
+            name = self.deviceName.text().strip() or "No device connected"
+            udid = self.deviceUDID.text().strip()
+            ios_text = self.iOSVersion.text().strip()
+            if ios_text.startswith("iOS Version:"):
+                ios_value = ios_text.split(":", 1)[1].strip()
+            else:
+                ios_value = self.iOS or "—"
+            self.iosVersionLarge.setText(ios_value if ios_value else "—")
+            self.buildNumber.setText("Build number: —")
+            if not udid:
+                self.deviceUDID.setText("UDID: —")
+
+            if self.devicesList.count() == 0:
+                item = QtWidgets.QListWidgetItem("▯  " + name)
+                item.setData(QtCore.Qt.UserRole, udid)
+                self.devicesList.addItem(item)
+                self.devicesList.setCurrentRow(0)
+            else:
+                item = self.devicesList.item(0)
+                if item:
+                    item.setText("▯  " + name)
+                    item.setData(QtCore.Qt.UserRole, udid)
+
+            status_text = self.deviceInfo.text().lower()
+            unsupported = "unsupported" in status_text
+            supported = "supported" in status_text and not unsupported
+            if unsupported:
+                self.capabilityIcon.setText("×")
+                self.capabilityTitle.setText("Unsupported")
+                self.capabilitySubtitle.setText("Your device is not supported by this version of iOS.")
+                self.capabilityIcon.setProperty("state", "error")
+            elif supported:
+                self.capabilityIcon.setText("✓")
+                self.capabilityTitle.setText("Supported")
+                self.capabilitySubtitle.setText("Your device is supported! (Local compatibility rule)")
+                self.capabilityIcon.setProperty("state", "ok")
+            else:
+                self.capabilityIcon.setText("•")
+                self.capabilityTitle.setText("Checking")
+                self.capabilitySubtitle.setText("Checking local compatibility…")
+                self.capabilityIcon.setProperty("state", "neutral")
+            self.capabilityIcon.style().unpolish(self.capabilityIcon)
+            self.capabilityIcon.style().polish(self.capabilityIcon)
+
+        def sync_activation_dialog():
+            width = self.progressFrame.width()
+            percent = max(0, min(100, int(round(width / 7.21))))
+            self.activationProgress.setValue(percent)
+            self.activationDeviceTitle.setText("Activating “%s”" % (self.deviceName.text() or "device"))
+            if self.listWidget.count() if hasattr(self, "listWidget") else False:
+                pass
+            done = percent >= 100 or not self.activateButton.isEnabled()
+            if done:
+                self.activationDone.setEnabled(True)
+                self.activationStep.setText("Activation is complete. Click Done to continue.")
+
+        # The old backend writes status lines to listWidget. Keep a real log widget,
+        # but hide it from the main mock-up until activation details are requested.
+        self.frame_2 = QtWidgets.QFrame(self.content)
+        self.frame_2.setObjectName("frame_2")
+        frame2Layout = QtWidgets.QVBoxLayout(self.frame_2)
+        self.listWidget = QtWidgets.QListWidget(self.frame_2)
+        self.listWidget.setObjectName("listWidget")
+        self.listWidget.setMaximumHeight(170)
+        self.listWidget.hide()
+        frame2Layout.addWidget(self.listWidget)
+        contentLayout.addWidget(self.frame_2)
+
+        def sync_activation_dialog():
+            width = self.progressFrame.width()
+            percent = max(0, min(100, int(round(width / 7.21))))
+            self.activationProgress.setValue(percent)
+            self.activationDeviceTitle.setText("Activating “%s”" % (self.deviceName.text() or "device"))
+            if self.listWidget.count():
+                last = self.listWidget.item(self.listWidget.count() - 1).text()
+                self.activationStep.setText(last.replace("[*] ", ""))
+                lines = []
+                for i in range(self.listWidget.count()):
+                    lines.append(self.listWidget.item(i).text().replace("[*] ", ""))
+                self.activationDetails.setPlainText("\n".join(lines))
+            if percent >= 100 or not self.activateButton.isEnabled():
+                self.activationDone.setEnabled(True)
+                self.activationStep.setText("Activation is complete. Click Done to continue.")
+
+        self._ui_sync_timer = QtCore.QTimer(MainWindow)
+        self._ui_sync_timer.timeout.connect(sync_state)
+        self._ui_sync_timer.timeout.connect(sync_activation_dialog)
+        self._ui_sync_timer.start(250)
+
+        def apply_theme(dark=True):
+            if dark:
+                bg, sidebar_bg, surface, surface_alt, border = "#000000", "#111111", "#171717", "#1d1d1d", "#2a2a2a"
+                text, sub, orange, field = "#f5f5f7", "#9a9aa0", "#ff8a24", "#0f0f0f"
+            else:
+                bg, sidebar_bg, surface, surface_alt, border = "#ffffff", "#f5f5f7", "#ffffff", "#f0f0f2", "#e5e5e7"
+                text, sub, orange, field = "#111111", "#8a8a8f", "#ff8a24", "#f7f7f9"
+            MainWindow.setStyleSheet(f"""
+                QMainWindow {{ background: {bg}; }}
+                QFrame#HomePage, QWidget#centralwidget {{ background: {bg}; }}
+                QFrame#sidebar {{ background: {sidebar_bg}; border-right: 1px solid {border}; }}
+                QLabel#headerTitle {{ color: {text}; font-size: 17px; font-weight: 700; }}
+                QLabel#themeHint {{ color: {sub}; font-size: 11px; }}
+                QLabel#devicesCaption, QLabel#deviceSectionLabel {{ color: {sub}; font-size: 11px; font-weight: 600; }}
+                QLabel#introStatusLabel {{ color: {sub}; font-size: 11px; }}
+                QLabel#iosVersionLarge {{ color: {text}; font-size: 23px; font-weight: 700; }}
+                QLabel#buildNumber, QLabel#deviceUDID, QLabel#activationState, QLabel#capabilitySubtitle {{ color: {sub}; font-size: 10px; }}
+                QLabel#deviceName {{ color: {text}; font-size: 19px; font-weight: 700; }}
+                QLabel#capabilityTitle {{ color: {text}; font-size: 14px; font-weight: 700; }}
+                QLabel#iosBadge {{ background: #22a8ef; color: white; border-radius: 12px; font-size: 10px; font-weight: 700; }}
+                QLabel#capabilityIcon {{ background: #2ecc71; color: white; border-radius: 14px; font-size: 17px; font-weight: 700; }}
+                QLabel#capabilityIcon[state="error"] {{ background: #ff3b30; }}
+                QLabel#capabilityIcon[state="neutral"] {{ background: #8e8e93; }}
+                QFrame#summaryCard, QFrame#deviceCard {{ background: {surface}; border: 1px solid {border}; border-radius: 10px; }}
+                QFrame#devicePreviewFrame {{ background: {surface_alt}; border-radius: 8px; }}
+                QListWidget#devicesList {{ background: transparent; border: none; color: {text}; outline: none; font-size: 11px; }}
+                QListWidget#devicesList::item {{ padding: 7px 8px; border-radius: 6px; }}
+                QListWidget#devicesList::item:selected {{ background: {orange}; color: white; }}
+                QPushButton#activateButton {{ background: {orange}; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; }}
+                QPushButton#activateButton:hover {{ background: #ff9d4d; }}
+                QPushButton#activateButton:disabled {{ background: {surface_alt}; color: {sub}; }}
+                QPushButton#settingsButton, QPushButton#themeButton {{ background: {surface_alt}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 0 10px; }}
+                QFrame#pbFrame {{ background: {surface_alt}; border: none; border-radius: 21px; }}
+                QFrame#progressFrame {{ background: {orange}; border-radius: 21px; }}
+                QFrame#InfoNotification, QFrame#LoadingNotification {{ background: {surface}; border: 1px solid {border}; border-radius: 12px; }}
+                QLabel#messageTitle, QLabel#activationDeviceTitle, QLabel#settingsTitle {{ color: {text}; font-size: 13px; font-weight: 700; }}
+                QLabel#messageContent, QLabel#loadingText, QLabel#activationStep, QLabel#apiUrlHint {{ color: {sub}; font-size: 11px; }}
+                QPushButton#closePopup, QPushButton#detailsToggle, QPushButton#activationDone, QPushButton#settingsCancel, QPushButton#settingsSave {{ background: {surface_alt}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 5px 10px; }}
+                QPushButton#activationDone:enabled, QPushButton#settingsSave {{ background: {orange}; color: white; border-color: {orange}; }}
+                QTextEdit#activationDetails, QLineEdit#apiUrlEdit, QLineEdit#dependenciesEdit, QLineEdit#logsEdit {{ background: {field}; color: {text}; border: 1px solid {border}; border-radius: 7px; padding: 7px; }}
+                QProgressBar#activationProgress {{ background: {surface_alt}; border: none; border-radius: 4px; }}
+                QProgressBar#activationProgress::chunk {{ background: {orange}; border-radius: 4px; }}
+            """)
+            self.themeButton.setText("☀  Light" if dark else "☾  Dark")
+            self.themeHint.setText("Dark" if dark else "Light")
+            self._dark_mode = dark
+            for dialog in (self.activationDialog, self.settingsDialog):
+                dialog.setStyleSheet(MainWindow.styleSheet())
+
+        def toggle_theme():
+            apply_theme(not getattr(self, "_dark_mode", True))
+
+        def choose_dependencies():
+            path = QtWidgets.QFileDialog.getExistingDirectory(self.settingsDialog, "Choose Dependencies", self.dependenciesEdit.text())
+            if path:
+                self.dependenciesEdit.setText(path)
+
+        def choose_logs():
+            path = QtWidgets.QFileDialog.getExistingDirectory(self.settingsDialog, "Choose Logs Directory", self.logsEdit.text())
+            if path:
+                self.logsEdit.setText(path)
+
+        def save_settings():
+            self.api_url = self.apiUrlEdit.text().strip() or self.api_url
+            self.dependencies_dir = self.dependenciesEdit.text().strip()
+            self.logs_dir = self.logsEdit.text().strip()
+            self.settingsDialog.accept()
+
+        def open_activation():
+            self.activationDialog.show()
+            self.activationDialog.raise_()
+            self.activationDialog.activateWindow()
+            self.StartHacktivating()
+
+        self.themeButton.clicked.connect(toggle_theme)
+        self.settingsButton.clicked.connect(self.settingsDialog.show)
+        self.dependenciesChoose.clicked.connect(choose_dependencies)
+        self.logsChoose.clicked.connect(choose_logs)
+        self.settingsCancel.clicked.connect(self.settingsDialog.reject)
+        self.settingsSave.clicked.connect(save_settings)
+        self.detailsToggle.toggled.connect(self.activationDetails.setVisible)
+        self.activationDone.clicked.connect(self.activationDialog.close)
+        self.activateButton.clicked.connect(open_activation)
+        self.closePopup.clicked.connect(self.ClosePopup)
 
         self.InfoNotification.hide()
         self.LoadingNotification.hide()
-
-        global animation
-
-        animation = True
-
-        self.MoveBarThread()
-
-        self.activateButton.clicked.connect(self.StartHacktivating)
-
-        self.closePopup.clicked.connect(self.ClosePopup)
+        self.HomePage.hide()
+        self.pbFrame.hide()
 
         self.retranslateUi(MainWindow)
+        apply_theme(True)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        searchThread = threading.Thread(target=self.SearchingForDevices, daemon=True)
+        searchThread.start()
+
+        global animation
+        animation = True
+        self.MoveBarThread()
 
     def run_short_command(self, cmd: List[str], timeout: Optional[int] = None) -> Tuple[int, str, str]:
         try:
@@ -1576,22 +1738,42 @@ class Ui_MainWindow(object):
 
 
 
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "R1nderPest"))
-        self.welcomeTitle.setText(_translate("MainWindow", "Welcome to R1nderpest!"))
-        self.welcomeMessage.setText(_translate("MainWindow", "Welcome to R1nderPest! This tool will help you bypass iCloud on iPhone X - 17 Pro Max. To get started, connect your device."))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Lober_R1nderpest"))
+        self.welcomeTitle.setText(_translate("MainWindow", "Welcome"))
+        self.welcomeMessage.setText(_translate("MainWindow", "Connect an iPhone or iPad to continue. The device status and compatibility check will appear here."))
         self.introStatusLabel.setText(_translate("MainWindow", "Searching for devices..."))
+        self.devicesCaption.setText(_translate("MainWindow", "Devices"))
+        self.headerTitle.setText(_translate("MainWindow", "Lober_R1nderpest"))
+        self.themeHint.setText(_translate("MainWindow", "Dark"))
+        self.settingsButton.setText(_translate("MainWindow", "Settings"))
+        self.themeButton.setText(_translate("MainWindow", "☀  Light"))
+        self.iosBadge.setText(_translate("MainWindow", "iOS"))
+        self.iosVersionLarge.setText(_translate("MainWindow", "—"))
+        self.buildNumber.setText(_translate("MainWindow", "Build number: —"))
+        self.deviceSectionLabel.setText(_translate("MainWindow", "Device"))
         self.deviceName.setText(_translate("MainWindow", "Device Name"))
-        self.deviceInfo.setText(_translate("MainWindow", "iOS Version: 26.1, Supported"))
-        self.activateButton.setText(_translate("MainWindow", "Unlock"))
-        self.deviceUDID.setText(_translate("MainWindow", "UDID: "))
+        self.deviceUDID.setText(_translate("MainWindow", "UDID: —"))
         self.activationState.setText(_translate("MainWindow", "Activation state: No"))
-        self.iOSVersion.setText(_translate("MainWindow", "iOS Version: 26.1"))
-        self.messageTitle.setText(_translate("MainWindow", "Message Title"))
-        self.messageContent.setText(_translate("MainWindow", "Message content"))
+        self.capabilityIcon.setText(_translate("MainWindow", "•"))
+        self.capabilityTitle.setText(_translate("MainWindow", "Checking"))
+        self.capabilitySubtitle.setText(_translate("MainWindow", "Checking local compatibility…"))
+        self.activateButton.setText(_translate("MainWindow", "Activate"))
+        self.messageTitle.setText(_translate("MainWindow", "Status"))
+        self.messageContent.setText(_translate("MainWindow", ""))
         self.closePopup.setText(_translate("MainWindow", "Close"))
-        self.loadingText.setText(_translate("MainWindow", "Connecting to server..."))
+        self.loadingText.setText(_translate("MainWindow", "Checking…"))
+        self.activationDeviceTitle.setText(_translate("MainWindow", "Activating “Device”"))
+        self.activationStep.setText(_translate("MainWindow", "Preparing…"))
+        self.detailsToggle.setText(_translate("MainWindow", ">  Show Details"))
+        self.activationDone.setText(_translate("MainWindow", "Done"))
+        self.settingsTitle.setText(_translate("MainWindow", "Settings"))
+        self.apiUrlHint.setText(_translate("MainWindow", "Provides API URL address to the application."))
+        self.settingsCancel.setText(_translate("MainWindow", "Cancel"))
+        self.settingsSave.setText(_translate("MainWindow", "Save"))
+
 
 
 if __name__ == "__main__":
